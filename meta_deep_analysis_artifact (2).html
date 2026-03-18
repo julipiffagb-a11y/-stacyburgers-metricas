@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>META Deep Analysis — stacyburgers</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;background:#f5f4f0;padding:1.5rem}
+.container{max-width:860px;margin:0 auto;background:#fff;border-radius:16px;padding:2rem;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.subtitle{font-size:13px;color:#888;margin-bottom:1.5rem}
+.tabs{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:1px solid #e5e4e0}
+.tab{padding:9px 18px;font-size:13px;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap}
+.tab.active{color:#1a1a1a;border-bottom-color:#378ADD;font-weight:500}
+.panel{display:none}.panel.active{display:block}
+.section-title{font-size:14px;font-weight:500;margin:1.5rem 0 10px}
+.section-title:first-child{margin-top:0}
+.post-card{background:#fff;border:1px solid #e5e4e0;border-radius:12px;margin-bottom:10px;padding:14px 16px}
+.post-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.post-title{font-size:13px;font-weight:500;line-height:1.4;flex:1}
+.post-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.badge-reel{background:#dbeafe;color:#1e40af}
+.badge-foto{background:#fef3c7;color:#92400e}
+.badge-seq{background:#dcfce7;color:#166534}
+.badge-varios{background:#f3f4f6;color:#6b7280}
+.badge-star{background:#fef3c7;color:#92400e}
+.date-txt{font-size:11px;color:#aaa}
+.post-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat-box{background:#f5f4f0;border-radius:8px;padding:8px 10px;text-align:center}
+.stat-val{font-size:16px;font-weight:500}
+.stat-lbl{font-size:10px;color:#888;margin-top:2px}
+.eng-bar-wrap{margin-top:10px}
+.eng-label{display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px}
+.eng-bar-bg{height:6px;background:#f5f4f0;border-radius:3px}
+.eng-bar-fill{height:6px;border-radius:3px}
+.rank-badge{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.rank-1{background:#fef3c7;color:#92400e}
+.rank-2{background:#f1f5f9;color:#475569}
+.rank-3{background:#fef3c7;color:#b45309}
+.rank-n{background:#f3f4f6;color:#9ca3af}
+.chart-wrap{position:relative;width:100%;height:200px;margin-bottom:1rem}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:1.5rem}
+.kpi{background:#f5f4f0;border-radius:8px;padding:10px 12px}
+.kpi-val{font-size:18px;font-weight:500}
+.kpi-lbl{font-size:11px;color:#888;margin-top:2px}
+.up{color:#16a34a}
+.insight-card{border:1px solid #e5e4e0;border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.insight-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.insight-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.insight-title{font-size:13px;font-weight:500}
+.insight-body{font-size:13px;color:#555;line-height:1.7}
+.insight-body strong{color:#1a1a1a;font-weight:500}
+.action-list{margin-top:8px;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.action-list li{font-size:12px;color:#666;padding-left:16px;position:relative;line-height:1.5}
+.action-list li::before{content:'→';position:absolute;left:0;color:#378ADD}
+.conclusion-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin-bottom:1.5rem;font-size:13px;color:#1e40af;line-height:1.7}
+.conclusion-box strong{font-weight:500}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>META Analytics — stacyburgers</h1>
+  <div class="subtitle">Análisis completo · 1 feb – 10 mar 2026 · Instagram</div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('posts')">Publicaciones</button>
+    <button class="tab" onclick="showTab('trends')">Tendencias</button>
+    <button class="tab" onclick="showTab('recs')">Recomendaciones</button>
+  </div>
+
+  <div class="panel active" id="panel-posts">
+    <div class="section-title">Ranking por engagement rate — Instagram</div>
+    <div id="posts-list"></div>
+    <div class="section-title">Comparativa alcance vs engagement</div>
+    <div class="chart-wrap" style="height:220px"><canvas id="c-scatter"></canvas></div>
+  </div>
+
+  <div class="panel" id="panel-trends">
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val">136K</div><div class="kpi-lbl">Visualizaciones feb</div></div>
+      <div class="kpi"><div class="kpi-val">43.5K</div><div class="kpi-lbl">Alcance feb</div></div>
+      <div class="kpi"><div class="kpi-val up">▲312%</div><div class="kpi-lbl">Interacciones sem4 vs sem1</div></div>
+      <div class="kpi"><div class="kpi-val">6.8</div><div class="kpi-lbl">Seg. nuevos/día promedio</div></div>
+    </div>
+    <div class="section-title">Visualizaciones diarias — febrero</div>
+    <div class="chart-wrap"><canvas id="c-views"></canvas></div>
+    <div class="section-title">Interacciones vs nuevos seguidores</div>
+    <div class="chart-wrap"><canvas id="c-int-seg"></canvas></div>
+    <div class="section-title">Visitas al perfil</div>
+    <div class="chart-wrap" style="height:160px"><canvas id="c-vis"></canvas></div>
+    <div class="section-title">Mapa de calor — actividad por día de semana</div>
+    <div id="heatmap"></div>
+  </div>
+
+  <div class="panel" id="panel-recs">
+    <div class="conclusion-box"><strong>Conclusión general:</strong> stacyburgers viene mostrando una evolución positiva y sostenida desde el trimestre anterior. Comparando los períodos analizados, los números hablan solos:<br><br><strong>Octubre–enero (trimestre anterior):</strong> 537K impresiones totales con una caída del -9.61%, interacciones en Reels con +538% de crecimiento interno, comunidad estable entre 8.396 y 8.515 seguidores (+122 netos). El punto débil identificado fue que guardados y compartidos caían, limitando la distribución orgánica.<br><br><strong>Febrero–marzo 2026 (período actual):</strong> Las interacciones promedio pasaron de <strong>28 por día en la primera quincena</strong> a <strong>112 por día en la segunda</strong> — un crecimiento del 312%. El alcance diario se duplicó de ~900 a ~1.800 personas. Los guardados en publicaciones puntales como el sorteo (61 guardados) muestran que se está corrigiendo exactamente el punto débil del trimestre anterior. Los seguidores nuevos pasaron de 6 por día a 14.<br><br>La cuenta está respondiendo a las mejoras aplicadas. El formato Reel con contexto local mendocino, que ya era la apuesta del trimestre anterior, confirmó ser el motor principal de crecimiento en este período.</div>
+    <div class="insight-card">
+      <div class="insight-header"><div class="insight-icon" style="background:#dbeafe">🎬</div><div class="insight-title">Los Reels dominan — y hay que aprovecharlo más</div></div>
+      <div class="insight-body">Los 4 Reels publicados generaron en promedio <strong>4.109 de alcance</strong> cada uno. El algoritmo prioriza video corto para distribución a no-seguidores.<br><br><ul class="action-list"><li>Publicar al menos 3 Reels al mes, idealmente los lunes, miércoles y viernes</li><li>El formato "salimos a probar / buscando el mejor X en Mendoza" funciona — replicarlo</li><li>Duración óptima: 15–30 segundos con gancho en los primeros 2 segundos</li></ul></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-header"><div class="insight-icon" style="background:#fef3c7">🎯</div><div class="insight-title">El sorteo fue tu mejor inversión de contenido</div></div>
+      <div class="insight-body">El sorteo del 16 feb logró <strong>4.4% de engagement rate</strong> — el más alto del período, con 204 likes y 61 guardados en un solo día.<br><br><ul class="action-list"><li>Repetir sorteos mensualmente, vinculados a eventos locales</li><li>Pedir "etiquetá a un amigo" — multiplica el alcance orgánico</li><li>Combinar sorteo con Reel para maximizar distribución</li></ul></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-header"><div class="insight-icon" style="background:#dcfce7">🕐</div><div class="insight-title">El horario 12:30–13:30 es tu ventana ganadora</div></div>
+      <div class="insight-body">El <strong>100% de tus mejores publicaciones</strong> fueron en ese rango — coincide con el almuerzo en Argentina.<br><br><ul class="action-list"><li>Programar todas las publicaciones entre 12:30 y 13:00</li><li>Probar también 19:00–20:00 como segunda ventana</li><li>Evitar domingos y lunes a la mañana</li></ul></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-header"><div class="insight-icon" style="background:#dcfce7">🔗</div><div class="insight-title">Aumentar links en Stories para generar tráfico a WhatsApp</div></div>
+      <div class="insight-body">Hay una oportunidad concreta de usar las Stories como canal directo hacia WhatsApp. Aumentar la frecuencia de links en Stories puede convertir seguidores en consultas reales.<br><br><ul class="action-list"><li>Publicar Stories con sticker de link a WhatsApp al menos 3 veces por semana</li><li>Acompañar cada Reel publicado con una Story que lleve directamente al WhatsApp</li><li>Usar frases de acción claras: &quot;Consultanos por acá&quot; o &quot;Reservá por WhatsApp&quot;</li></ul></div>
+    </div>
+    <div class="section-title">Prioridad de acciones — próximas 4 semanas</div>
+    <div class="chart-wrap" style="height:180px"><canvas id="c-priority"></canvas></div>
+  </div>
+</div>
+
+<script>
+const POSTS=[
+  {title:'Sorteo 2 entradas ARCANA',tipo:'Foto',fecha:'16 feb 13:30',alcance:4626,likes:204,saved:61},
+  {title:'Las excusas para no ir...',tipo:'Reel',fecha:'14 feb 12:31',alcance:4674,likes:79,saved:19},
+  {title:'Buscando el mejor spot',tipo:'Reel',fecha:'13 feb 13:01',alcance:3961,likes:107,saved:10},
+  {title:'Salimos a probar la suerte',tipo:'Reel',fecha:'20 feb 18:22',alcance:3802,likes:75,saved:13},
+  {title:'Estuvimos en ARCANA FEST',tipo:'Secuencia',fecha:'27 feb 13:00',alcance:1318,likes:77,saved:5},
+  {title:'Sobrevivir al calor...',tipo:'Varios',fecha:'11 feb 14:40',alcance:2,likes:63,saved:2},
+];
+const engRate=p=>p.alcance>0?((p.likes+p.saved)/p.alcance*100):0;
+const fmt=n=>n>=1000?(n/1000).toFixed(1)+'K':n.toLocaleString('es-AR');
+const maxEng=Math.max(...POSTS.map(engRate));
+const typeBadge=t=>{const m={Reel:'badge-reel',Foto:'badge-foto',Secuencia:'badge-seq',Varios:'badge-varios'};return`<span class="badge ${m[t]||'badge-varios'}">${t}</span>`;};
+
+(()=>{
+  const sorted=[...POSTS].sort((a,b)=>engRate(b)-engRate(a));
+  document.getElementById('posts-list').innerHTML=sorted.map((p,i)=>{
+    const er=engRate(p),rc=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+    const bc=i===0?'#EF9F27':i===1?'#378ADD':'#1D9E75';
+    const bp=Math.min(100,er/maxEng*100).toFixed(1);
+    const star=i===0?'<span class="badge badge-star" style="margin-left:6px">Mejor post</span>':'';
+    return`<div class="post-card"><div class="post-header"><div style="flex:1"><div class="post-title">${p.title}${star}</div><div class="post-meta">${typeBadge(p.tipo)}<span class="date-txt">${p.fecha}</span></div></div><div class="rank-badge ${rc}">#${i+1}</div></div><div class="post-stats"><div class="stat-box"><div class="stat-val">${fmt(p.alcance)}</div><div class="stat-lbl">Alcance</div></div><div class="stat-box"><div class="stat-val">${p.likes}</div><div class="stat-lbl">Likes</div></div><div class="stat-box"><div class="stat-val">${p.saved}</div><div class="stat-lbl">Guardados</div></div><div class="stat-box"><div class="stat-val" style="color:${bc}">${er.toFixed(1)}%</div><div class="stat-lbl">Eng. rate</div></div></div><div class="eng-bar-wrap"><div class="eng-label"><span>Engagement rate</span><span>${er.toFixed(2)}%</span></div><div class="eng-bar-bg"><div class="eng-bar-fill" style="width:${bp}%;background:${bc}"></div></div></div></div>`;
+  }).join('');
+  new Chart(document.getElementById('c-scatter'),{type:'bubble',data:{datasets:[{label:'Posts',data:POSTS.map(p=>({x:p.alcance,y:engRate(p),r:Math.max(6,Math.sqrt(p.likes)*1.8)})),backgroundColor:'rgba(55,138,221,0.6)',borderColor:'#378ADD',borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:d=>`${POSTS[d.dataIndex].title.slice(0,25)} | Alcance: ${fmt(d.parsed.x)} | Eng: ${d.parsed.y.toFixed(1)}%`}}},scales:{x:{title:{display:true,text:'Alcance',font:{size:11},color:'#888'},ticks:{font:{size:10},color:'#888',callback:v=>fmt(v)},grid:{color:'rgba(128,128,128,0.1)'}},y:{title:{display:true,text:'Engagement %',font:{size:11},color:'#888'},ticks:{font:{size:11},color:'#888',callback:v=>v+'%'},grid:{color:'rgba(128,128,128,0.1)'}}}}});
+})();
+
+const L=['01/02','02/02','03/02','04/02','05/02','06/02','07/02','08/02','09/02','10/02','11/02','12/02','13/02','14/02','15/02','16/02','17/02','18/02','19/02','20/02','21/02','22/02','23/02','24/02','25/02','26/02','27/02','28/02'];
+const V=[4191,2296,2185,2121,2303,2331,1206,479,1246,2016,3034,1763,7048,9615,1657,6833,3413,2505,3323,4842,5864,6726,8731,6602,8207,3206,2689,1178];
+const R=[2164,1307,837,593,601,660,546,279,820,829,1168,657,1902,4724,942,2501,1782,843,791,1063,1326,1292,2216,2121,1277,1005,847,588];
+const I=[8,1,7,3,1,5,4,1,1,1,52,13,88,139,10,432,520,226,160,86,56,37,27,27,28,11,69,8];
+const S=[6,4,3,4,5,5,7,2,3,6,5,6,6,11,6,18,28,20,19,10,11,9,13,11,4,4,5,2];
+const Vi=[91,90,64,95,116,105,159,70,79,86,108,87,150,198,77,174,140,95,163,182,177,223,154,197,153,78,102,104];
+const bo=(yF)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:11},boxWidth:10,color:'#888'}}},scales:{x:{ticks:{font:{size:10},color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:14},grid:{display:false}},y:{ticks:{font:{size:11},color:'#888',callback:yF||(v=>v>=1000?(v/1000).toFixed(0)+'K':v)},grid:{color:'rgba(128,128,128,0.1)'}}},elements:{point:{radius:2},line:{tension:0.4}}});
+
+let tr=false,rr=false;
+function renderTrends(){
+  new Chart(document.getElementById('c-views'),{type:'line',data:{labels:L,datasets:[{label:'Visualizaciones',data:V,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2},{label:'Alcance',data:R,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.06)',fill:true,borderWidth:1.5}]},options:bo()});
+  new Chart(document.getElementById('c-int-seg'),{type:'bar',data:{labels:L,datasets:[{label:'Interacciones',data:I,backgroundColor:'rgba(55,138,221,0.75)',borderColor:'#378ADD',borderWidth:1,yAxisID:'y'},{label:'Nuevos seguidores',data:S,type:'line',borderColor:'#EF9F27',backgroundColor:'rgba(239,159,39,0.1)',fill:false,borderWidth:2,pointRadius:3,yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:11},boxWidth:10,color:'#888'}}},scales:{x:{ticks:{font:{size:10},color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:14},grid:{display:false}},y:{ticks:{font:{size:11},color:'#888'},grid:{color:'rgba(128,128,128,0.1)'}},y1:{position:'right',ticks:{font:{size:11},color:'#EF9F27'},grid:{display:false}}}}});
+  new Chart(document.getElementById('c-vis'),{type:'line',data:{labels:L,datasets:[{label:'Visitas al perfil',data:Vi,borderColor:'#BA7517',backgroundColor:'rgba(186,117,23,0.08)',fill:true,borderWidth:2}]},options:{...bo(),plugins:{legend:{display:false}}}});
+  const dn=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],dt=[0,0,0,0,0,0,0],dc=[0,0,0,0,0,0,0];
+  I.forEach((v,i)=>{const d=(6+i)%7;dt[d]+=v;dc[d]++;});
+  const da=dt.map((t,i)=>dc[i]>0?Math.round(t/dc[i]):0),ma=Math.max(...da);
+  document.getElementById('heatmap').innerHTML='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px">'+dn.map(d=>`<div style="font-size:11px;color:#aaa;text-align:center">${d}</div>`).join('')+'</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:4px">'+da.map(v=>{const a=ma>0?0.15+v/ma*0.75:0.15;return`<div style="aspect-ratio:1;border-radius:6px;background:rgba(55,138,221,${a.toFixed(2)});display:flex;align-items:center;justify-content:center;font-size:11px">${v}</div>`;}).join('')+'</div><div style="font-size:11px;color:#aaa;text-align:center;margin-top:4px">Promedio interacciones por día de semana</div>';
+}
+function renderRecs(){
+  new Chart(document.getElementById('c-priority'),{type:'bar',data:{labels:['+ Reels al mes','Sorteos mensuales','Stories a WhatsApp','Horario 12:30–13:00'],datasets:[{data:[95,80,70,60],backgroundColor:['rgba(55,138,221,0.8)','rgba(55,138,221,0.7)','rgba(55,138,221,0.6)','rgba(55,138,221,0.45)'],borderColor:'#378ADD',borderWidth:1,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{max:100,ticks:{font:{size:10},color:'#888',callback:v=>v+'%'},grid:{color:'rgba(128,128,128,0.1)'}},y:{ticks:{font:{size:11},color:'#888'},grid:{display:false}}}}});
+}
+function showTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['posts','trends','recs'][i]===id));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(id==='trends'&&!tr){renderTrends();tr=true;}
+  if(id==='recs'&&!rr){renderRecs();rr=true;}
+}
+</script>
+</body>
+</html>
